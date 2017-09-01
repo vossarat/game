@@ -1,7 +1,7 @@
 <?php
 
 /**
-* class для добаления записи  
+* class для добавления записи  
 * 
 */
 class Create extends Controller
@@ -10,11 +10,10 @@ class Create extends Controller
 	{
 		$this->chkID($jsonData['id']); // проверяем ID на дубль 
 		
-		$stmt = $this->db->prepare('INSERT INTO thegame (id, gamer1) VALUES (:id, :gamer1)'); // готовим запрос к msqql
+		$stmt = $this->db->prepare('INSERT INTO thegame (id) VALUES (:id)'); // готовим запрос к msqql
 		//выполение подготовленного запроса с параметрами
 		$stmt->execute(array(
 							':id'=>$jsonData['id'],
-							':gamer1'=>$jsonData['gamer1'],
 						));
 		$lastInsertId = $this->db->lastInsertId(); // последний добавленный ID
 		

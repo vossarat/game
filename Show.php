@@ -1,41 +1,65 @@
 <?php
 
 /**
-* class для редактирования данных по ID записи  
+* class для отображения данных данных по token  
 * 
 */
 class Show extends Controller
 {
 	public function index( $jsonData )
 	{
-		$this->chkID($jsonData['id']); // проверяем ID на существование
+		$this->chkToken($jsonData['token']); // проверяем token на существование
 		
-		$stmt = $this->db->prepare('SELECT * FROM thegame WHERE id=:id'); // готовим запрос к mysql
-		
-		//выполение подготовленного запроса с параметрами
+		// проверяем на совпадение по токену1
+		$stmt = $this->db->prepare('SELECT array1 FROM thegame WHERE token1=:token LIMIT 1'); 
 		$stmt->execute( array(
-						':id'=>$jsonData['id'],
+						':token'=>$jsonData['token'],
 						) );
+		$json = $stmt->fetchcolumn(); //получение данных
 		
-		// json для ответа 
-		$json = $stmt->fetchall(PDO::FETCH_ASSOC);
+		//если данные есть 
+		if($json){
+			// и есть ключ очистки
+			if( array_key_exists('clear', $jsonData) ) {
+				$this->clear($jsonData['token']); //то чистим
+			} 
+			parent::response($json); //возврат чтения
+		}
+		
+		// тоже самое проверяем на совпадение по токену2
+		$stmt = $this->db->prepare('SELECT array2 FROM thegame WHERE token2=:token LIMIT 1'); 
+		$stmt->execute( array(
+						':token'=>$jsonData['token'],
+						) );
+		$json = $stmt->fetchcolumn();
+		
+		if( array_key_exists('clear', $jsonData) ) $this->clear($jsonData['token']);
 		parent::response($json);
+		
 	}
 	
 	
 	/**
 	* 
-	* @param undefined $id проверяем ID на дубль 
+	* @param undefined $token проверяем на существование 
 	* 
 	* @return bool 0-если нет записей, >=1 если есть  
 	*/
-	public function chkID($id){
-		$stmt = $this->db->prepare('SELECT COUNT(*) FROM thegame where id=:id');
-		$stmt->execute(array(':id' => $id));
+	public function chkToken($token){
+		$stmt = $this->db->prepare('SELECT COUNT(*) FROM thegame WHERE token1=:token or token2=:token');
+		$stmt->execute(array(':token' => $token));
 		$count = $stmt->fetchColumn();
 		if($count == 0){
-			parent::error('ID is not enabled');
+			parent::error('token is not enabled');
 		}
+	}
+	
+	public function clear($token)
+	{
+		$stmt = $this->db->prepare('UPDATE thegame SET array1="" WHERE token1=:token');		
+		$stmt->execute( array(':token'=> $token) );
+		$stmt = $this->db->prepare('UPDATE thegame SET array2="" WHERE token2=:token');		
+		$stmt->execute( array(':token'=> $token) );
 	}
 
 }

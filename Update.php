@@ -8,25 +8,33 @@ class Update extends Controller
 {
 	public function index( $jsonData )
 	{
-		$this->chkID($jsonData['id']); // проверяем ID на существование
+		$this->chkToken($jsonData['token']); // проверяем token на существование
 		
-		$stmt = $this->db->prepare('UPDATE thegame SET gamer1=:gamer1, gamer2=:gamer2, array1=:array1, array2=:array2, info=:info  WHERE id=:id'); // готовим запрос к mysql
+		$data1 = '';
+		$data2 = '';
 		
+		if( !array_key_exists('rewrite', $jsonData) ){
+			$stmt = $this->db->prepare('SELECT array1, array2 FROM thegame WHERE token1=:token or token2=:token LIMIT 1');
+			$stmt->execute( array(
+				':token'=> $jsonData['token'],						
+			) );
+			$data = $stmt->fetchall(PDO::FETCH_ASSOC);
+			$data1 = $data[0]['array1'];
+			$data2 = $data[0]['array2'];
+		}	
+		
+		$stmt = $this->db->prepare('UPDATE thegame SET array1=:data1, array2=:data2 WHERE token1=:token or token2=:token');		
 
 		//выполение подготовленного запроса с параметрами
 		$stmt->execute( array(
-				':id'=>$jsonData['id'],
-				':gamer1'=> isset($jsonData['gamer1']) ? $jsonData['gamer1'] : '', //еcли есть значение то изменяем  
-				':gamer2'=> isset($jsonData['gamer2']) ? $jsonData['gamer2'] : '',
-				':array1'=> isset($jsonData['array1']) ? $jsonData['array1'] : '',
-				':array2'=> isset($jsonData['array2']) ? $jsonData['array2'] : '',
-				'info'=> isset($jsonData['info']) ? $jsonData['info'] : '',						
+				':token'=> $jsonData['token'],						
+				':data1'=> $data1.$jsonData['data'],						
+				':data2'=> $data2.$jsonData['data'],						
 		) );
 		
 		// json для ответа 
 		$json = array(
 					'status'=>'update',
-					'id'=>$jsonData['id'],					
 					);
 		parent::response($json);
 	}
@@ -34,16 +42,16 @@ class Update extends Controller
 	
 	/**
 	* 
-	* @param undefined $id проверяем ID на дубль 
+	* @param undefined $token проверяем на существование 
 	* 
 	* @return bool 0-если нет записей, >=1 если есть  
 	*/
-	public function chkID($id){
-		$stmt = $this->db->prepare('SELECT COUNT(*) FROM thegame where id=:id');
-		$stmt->execute(array(':id' => $id));
+	public function chkToken($token){
+		$stmt = $this->db->prepare('SELECT COUNT(*) FROM thegame WHERE token1=:token or token2=:token');
+		$stmt->execute(array(':token' => $token));
 		$count = $stmt->fetchColumn();
 		if($count == 0){
-			parent::error('ID is not enabled');
+			parent::error('token is not enabled');
 		}
 	}
 

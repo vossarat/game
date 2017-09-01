@@ -11,14 +11,17 @@ class Route extends Controller
 	{
 		// проверка на тип запроса
 		// если не POST, то error
-		if( $_SERVER['REQUEST_METHOD'] == 'GET' ){
+		/*if( $_SERVER['REQUEST_METHOD'] == 'GET' ){
 			parent::error('Type request only POST');
 			return ;
-		}
+		}*/
 		
-		$postContent = trim(file_get_contents("php://input")); // получаем данные запроса		
+		//$postContent = trim(file_get_contents("php://input")); // получаем данные запроса		
 		
-		//$postContent = '{"id":26, "gamer2":"GamerName2"}';
+		//$postContent = '{"id":47}'; //пример post для create
+		//$postContent = '{"id":47, "gamer":"test"}'; // пример post для connect
+		//$postContent = '{"token":"69805458a8fc7e4f36e84d64484c613f", "data":"toend", "rewrite":""}'; // пример post для update
+		//$postContent = '{"token":"098f6bcd4621d373cade4e832627b4f7", "clear":""}'; // пример post для show
 		$jsonData = json_decode($postContent, true);
 				
 		if(!is_array($jsonData)){
